@@ -1,0 +1,39 @@
+info: Server running at http://localhost:4000 {"timestamp":"2025-01-01T18:58:43.150Z"}
+info: Request received: Feature=undefined, Prompt=Summary of Dun and Bradstreet {"timestamp":"2025-01-01T18:59:22.004Z"}
+info: Requesting Wikipedia URL: https://en.wikipedia.org/api/rest_v1/page/summary/Dun%20and%20Bradstreet {"timestamp":"2025-01-01T18:59:22.005Z"}
+info: Request received: Feature=undefined, Prompt=Prasenjit {"timestamp":"2025-01-01T18:59:58.390Z"}
+info: Using model: granite3.1-dense:2b {"timestamp":"2025-01-01T18:59:58.391Z"}
+info: Using default model for feature: undefined {"timestamp":"2025-01-01T18:59:58.392Z"}
+info: Response generated: (No response yet, waiting for user's message) {"timestamp":"2025-01-01T19:00:01.886Z"}
+info: Server running at http://localhost:4000 {"timestamp":"2025-01-01T19:06:17.989Z"}
+info: Request received: Feature=default, Prompt=Prasenjit {"timestamp":"2025-01-01T19:06:32.992Z"}
+info: Using model: granite3.1-dense:2b {"timestamp":"2025-01-01T19:06:32.993Z"}
+info: Using default model for feature: default {"timestamp":"2025-01-01T19:06:32.994Z"}
+info: Response generated: (No response yet, waiting for user's message) {"timestamp":"2025-01-01T19:06:36.158Z"}
+info: Request received: Feature=default, Prompt=Summary of Dun and Bradstreet {"timestamp":"2025-01-01T19:06:47.409Z"}
+info: Requesting Wikipedia URL: https://en.wikipedia.org/api/rest_v1/page/summary/Dun%20and%20Bradstreet {"timestamp":"2025-01-01T19:06:47.409Z"}
+info: Request received: Feature=default, Prompt=Dun and Bradstreet {"timestamp":"2025-01-01T19:07:46.963Z"}
+info: Using model: granite3.1-dense:2b {"timestamp":"2025-01-01T19:07:46.963Z"}
+info: Using default model for feature: default {"timestamp":"2025-01-01T19:07:46.963Z"}
+info: Response generated: Dun & Bradstreet (D&B) is an American credit rating agency that provides business-to-business data and analytics to help companies make informed decisions about potential customers and suppliers. It offers a wide range of services, including company profiles, financial health assessments, risk management tools, and market intelligence. D&B's database contains over 300 million global businesses, enabling users to identify and evaluate potential partners, mitigate risks, and optimize their operations. {"timestamp":"2025-01-01T19:07:52.771Z"}
+info: Server running at http://localhost:4000 {"timestamp":"2025-01-01T19:12:08.824Z"}
+info: Request received: Feature=default, Prompt=Prasenjit {"timestamp":"2025-01-01T19:12:20.142Z"}
+info: Using model: granite3.1-dense:2b {"timestamp":"2025-01-01T19:12:20.143Z"}
+info: Using default model for feature: default {"timestamp":"2025-01-01T19:12:20.144Z"}
+info: Response generated: (No response yet, waiting for user's message) {"timestamp":"2025-01-01T19:12:21.897Z"}
+info: Request received: Feature=default, Prompt=Prasenjit {"timestamp":"2025-01-01T19:16:50.775Z"}
+info: Using model: granite3.1-dense:2b {"timestamp":"2025-01-01T19:16:50.775Z"}
+info: Using default model for feature: default {"timestamp":"2025-01-01T19:16:50.776Z"}
+info: Response generated: (No response yet, waiting for user's message) {"timestamp":"2025-01-01T19:16:52.600Z"}
+info: Request received: Feature=default, Prompt=Prasenjit {"timestamp":"2025-01-01T19:24:53.570Z"}
+info: Using model: granite3.1-dense:2b {"timestamp":"2025-01-01T19:24:53.571Z"}
+info: Using default model for feature: default {"timestamp":"2025-01-01T19:24:53.571Z"}
+info: Response generated: (No response yet, waiting for user's message) {"timestamp":"2025-01-01T19:24:56.756Z"}
+info: Request received: Feature=default, Prompt=Prasenjit {"timestamp":"2025-01-01T19:28:44.837Z"}
+info: Using model: granite3.1-dense:2b {"timestamp":"2025-01-01T19:28:44.837Z"}
+info: Using default model for feature: default {"timestamp":"2025-01-01T19:28:44.837Z"}
+info: Response generated: (No response yet, waiting for user's message) {"timestamp":"2025-01-01T19:28:46.572Z"}
+info: Request received: Feature=default, Prompt=Prasenjit {"timestamp":"2025-01-01T19:28:56.272Z"}
+info: Using model: granite3.1-dense:2b {"timestamp":"2025-01-01T19:28:56.273Z"}
+info: Using default model for feature: default {"timestamp":"2025-01-01T19:28:56.273Z"}
+info: Response generated: (No response yet, waiting for user's message) {"timestamp":"2025-01-01T19:28:57.978Z"}
