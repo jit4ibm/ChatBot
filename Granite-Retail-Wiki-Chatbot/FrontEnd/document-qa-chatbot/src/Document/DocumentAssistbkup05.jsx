@@ -46,7 +46,7 @@ function DocumentAssist() {
       alert("An error occurred during upload.");
     } finally {
       setLoading(false);
-      setFile(null); // Reset file after upload
+      setFile(null);
       setFileName("");
     }
   };
@@ -85,11 +85,6 @@ function DocumentAssist() {
     );
   };
 
-  const handleFileDeselect = () => {
-    setFile(null);
-    setFileName("");
-  };
-
   return (
     <div className="document-assist-container">
       {loading && <div className="spinner-overlay"><div className="spinner"></div></div>}
@@ -100,19 +95,15 @@ function DocumentAssist() {
           id="fileUpload"
           style={{ display: "none" }}
           onChange={handleFileChange}
-          disabled={loading || selectedDocuments.length > 0} // Disable only if documents are selected
+          disabled={loading || selectedDocuments.length > 0}
         />
-        <label
-          htmlFor="fileUpload"
-          className={`upload-button ${loading || selectedDocuments.length > 0 ? "disabled" : ""}`}
-          onClick={handleFileDeselect} // Reset the file input when label is clicked
-        >
+        <label htmlFor="fileUpload" className={`upload-button ${loading || selectedDocuments.length > 0 ? "disabled" : ""}`}>
           Choose File
         </label>
         <button
           className="upload-submit-button"
           onClick={handleFileUpload}
-          disabled={loading || !file} // Only disable if file is not selected
+          disabled={loading || selectedDocuments.length > 0 || !file}
         >
           Upload Document
         </button>

@@ -15,11 +15,7 @@ from langchain_ollama import OllamaEmbeddings, OllamaLLM
 from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
-import uuid
-import logging
 
-# Initialize logging
-logging.basicConfig(level=logging.INFO)
 
 # Ensure NLTK resources are available
 nltk.download('punkt')
@@ -27,9 +23,6 @@ nltk.download('averaged_perceptron_tagger')
 
 app = Flask(__name__)
 CORS(app)
-
-# Max file size limit in MB (e.g., 10MB)
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 
 def get_document_format(file_path) -> InputFormat:
     """Determine the document format based on file extension"""
@@ -43,24 +36,28 @@ def get_document_format(file_path) -> InputFormat:
 
     try:
         extension = os.path.splitext(file_path)[1].lower()
-        logging.info(f"File extension detected: {extension}")
+        print(f"File extension detected: {extension}")
+        
+        # Add supported formats here
         if extension in ['.pdf', '.docx', '.html', '.pptx']:
             return format_map.get(extension)
         else:
-            logging.warning(f"Unsupported file extension: {extension}")
+            print(f"Unsupported file extension: {extension}")
             return None
     except Exception as e:
-        logging.error(f"Error in get_document_format: {str(e)}")
-        return None
-
+        print(f"Error in get_document_format: {str(e)}")
+        return None                                    # Return None if format is unsupported
+    
 def validate_pdf(file_path):
     """Validate if the PDF is readable."""
     try:
         pdf = PdfDocument(file_path)  # Ensure PdfDocument is initialized properly
+        #page_count = pdf.get_page_count()
         page_count = len(pdf)  # Use len(pdf) to get the number of pages
+
         if page_count == 0:
             raise ValueError("The PDF has no readable pages.")
-        logging.info(f"PDF validated successfully with {page_count} pages.")
+        print(f"PDF validated successfully with {page_count} pages.")
     except PdfiumError as pdf_error:
         raise ValueError(f"PDF validation error: {pdf_error}")
     except Exception as e:
@@ -84,41 +81,55 @@ def convert_document_to_markdown(doc_path) -> str:
             }
         )
         try:
-            logging.info(f"Attempting to convert document: {temp_input}")
+            print(f"Attempting to convert document: {temp_input}")
             conv_result = converter.convert(temp_input)
             if not conv_result or not conv_result.document:
                 raise ValueError("Document conversion failed with no output.")
-            logging.info("Conversion successful.")
+            print("Conversion successful.")
             return conv_result.document.export_to_markdown()
         except PdfiumError as pdf_error:
-            logging.error(f"PDF loading error: {pdf_error}")
+            print(f"PDF loading error: {pdf_error}")
             raise ValueError("The uploaded PDF could not be processed. Please try another file.") from pdf_error
         except Exception as e:
-            logging.error(f"Error during document conversion: {e}")
+            print(f"Error during document conversion: {e}")
             raise
 
 def setup_qa_chain(markdown_file_path, embeddings_model_name="nomic-embed-text:latest", model_name="granite3.1-dense:8b"):
     """Set up the QA chain."""
 
-    logging.info(f"Setting up QA chain with content: {markdown_file_path[:200]}...")  # Log the first 200 characters
+    print(f"Setting up QA chain with content: {markdown_file_path[:200]}...")  # Log the first 200 characters
 
+    # loader = UnstructuredMarkdownLoader.from_content(markdown_content)
+    # documents = loader.load()
+
+    # Here we should load the markdown file from the path.
+    # loader = UnstructuredMarkdownLoader.from_file(markdown_content)  # Use from_file to load the markdown
+    # documents = loader.load()
+
+    # Use UnstructuredMarkdownLoader to load markdown content from file
+    # Load the markdown content from the file
     loader = UnstructuredMarkdownLoader(markdown_file_path)
     documents = loader.load()
 
+    # Split the documents into smaller chunks
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     texts = text_splitter.split_documents(documents)
 
+    # Create embeddings and vectorstore
     embeddings = OllamaEmbeddings(model=embeddings_model_name)
     vectorstore = FAISS.from_documents(texts, embeddings)
 
+    # Set up the LLM
     llm = OllamaLLM(model=model_name, temperature=0)
 
+    # Initialize memory for conversational retrieval
     memory = ConversationBufferMemory(
         memory_key="chat_history",
         output_key="answer",
         return_messages=True
     )
 
+    # Create and return the QA chain
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=vectorstore.as_retriever(search_kwargs={"k": 10}),
@@ -132,12 +143,14 @@ def setup_qa_chain(markdown_file_path, embeddings_model_name="nomic-embed-text:l
 def upload_document():
     """Endpoint to upload a document."""
     if 'file' not in request.files:
-        logging.error("No file part in the request")
+        # Log the file name and path
+        print(f"File uploaded: {file.filename}")
         return jsonify({"error": "No file part in the request"}), 400
 
     file = request.files['file']
     if file.filename == '':
-        logging.error("No file selected")
+        # Log the file name and path
+        print(f"File uploaded: {file.filename}")
         return jsonify({"error": "No file selected"}), 400
     
     temp_file_path = None
@@ -145,65 +158,86 @@ def upload_document():
     temp_file_path = os.path.join(temp_dir, file.filename)
 
     try:
+        # temp_file_path = tempfile.NamedTemporaryFile(delete=False).name
+        # temp_file_path = os.path.join(temp_dir, os.path.basename(file.filename))
         file.save(temp_file_path)
-        logging.info(f"File uploaded: {file.filename}, saved as: {temp_file_path}")
 
+        # Log the file name and path
+        print(f"File uploaded: {file.filename}, saved as: {temp_file_path}")
+
+        # Determine document format
         doc_format = get_document_format(temp_file_path)
-        if not doc_format:
-            logging.warning(f"Unsupported file format: {os.path.splitext(temp_file_path)[1]}")
-            return jsonify({"error": "Unsupported document format"}), 400
 
+        if not doc_format:
+            print(f"Unsupported file format: {os.path.splitext(temp_file_path)[1]}")
+            return jsonify({"error": "Unsupported document format"}), 400
+        
         if doc_format == InputFormat.PDF:
             try:
                 validate_pdf(temp_file_path)
             except ValueError as e:
-                logging.error(f"Validation error: {e}")
+                print(f"Validation error: {e}")
                 return jsonify({"error": str(e)}), 400
 
+        # Convert document to markdown
         markdown_content = convert_document_to_markdown(temp_file_path)
-        logging.info("Markdown content successfully generated.")
+        print(f"Markdown content successfully generated.")
 
+        # Save markdown to a persistent location
         persistent_dir = os.path.join(os.getcwd(), "uploads")
         os.makedirs(persistent_dir, exist_ok=True)
-        markdown_path = os.path.join(persistent_dir, f"{uuid.uuid4()}.md")
+        markdown_path = os.path.join(persistent_dir, f"{file.filename}.md")
 
+        #markdown_path = f"{temp_file_path}.md"
         with open(markdown_path, "w", encoding="utf-8") as md_file:
             md_file.write(markdown_content)
 
-        logging.info(f"Markdown file saved at: {markdown_path}")
-
+        print(f"Markdown file saved at: {markdown_path}")
+        print(f"Response to frontend: {jsonify({'markdown_content': markdown_content, 'markdown_path': markdown_path})}")
+        
         return jsonify({
-            "markdown_content": markdown_content,
-            "markdown_path": markdown_path
+            "markdown_content": markdown_content,  # If you want the actual content
+            "markdown_path": markdown_path         # If you want the saved path
         }), 200
     
     except Exception as e:
-        logging.error(f"Error during file upload or processing: {str(e)}")
+        print(f"Error during file upload or processing: {str(e)}")
         return jsonify({"error": str(e)}), 500
     finally:
         if temp_file_path and os.path.exists(temp_file_path):
+            print(f"File saved successfully: {temp_file_path}")
             os.remove(temp_file_path)
         shutil.rmtree(temp_dir, ignore_errors=True)
-
 
 @app.route('/ask-question', methods=['POST'])
 def ask_question():
     """Endpoint to ask a question."""
     data = request.json
 
-    markdown_file_path = data.get('markdown_path')
+    # Check for missing required fields
+    # markdown_content = data.get('markdown_content')
+    # question = data.get('question')
+
+    markdown_file_path = data.get('markdown_path')  # Use markdown_path passed from frontend
     question = data.get('question')
 
+    print(f"Request data received: {data}")
+    print(f"Markdown path: {markdown_file_path}, Question: {question}")
+
     if not markdown_file_path or not question:
-        logging.error(f"Missing data: markdown_content = {markdown_file_path}, question = {question}")
+        print(f"Missing data: markdown_content = {markdown_file_path}, question = {question}")
         return jsonify({"error": "Invalid request, markdown_content and question are required"}), 400
     
     try:
+        # Proceed with the QA logic
         qa_chain = setup_qa_chain(markdown_file_path)
+        print(f"Received markdown_path: {markdown_file_path}, question: {question}")
+        
+        # generate Answer
         result = qa_chain.invoke({"question": question})
         return jsonify({"answer": result["answer"]}), 200
     except Exception as e:
-        logging.error(f"Error during QA processing: {str(e)}")
+        print(f"Error during QA processing: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':

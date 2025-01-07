@@ -5,8 +5,8 @@ import "./DocAssistant.css";
 function DocumentAssist() {
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
-  const [documents, setDocuments] = useState([]);
-  const [selectedDocuments, setSelectedDocuments] = useState([]);
+  const [documents, setDocuments] = useState([]); // List of uploaded documents
+  const [selectedDocuments, setSelectedDocuments] = useState([]); // Selected documents
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ function DocumentAssist() {
     const formData = new FormData();
     formData.append("file", file);
 
-    setLoading(true);
+    setLoading(true); // Show throbber and disable actions
     try {
       const response = await axios.post("http://localhost:5000/upload-document", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -39,14 +39,15 @@ function DocumentAssist() {
         setDocuments((prev) => [...prev, { name: fileName, path: markdown_path }]);
         alert(`File uploaded successfully!`);
       } else {
+        console.error("Error:", response.data.error);
         alert(response.data.error);
       }
     } catch (error) {
       console.error("Error uploading document:", error);
-      alert("An error occurred during upload.");
+      alert("An error occurred during upload. Please check the console for details.");
     } finally {
-      setLoading(false);
-      setFile(null); // Reset file after upload
+      setLoading(false); // Hide throbber
+      setFile(null); // Clear selected file
       setFileName("");
     }
   };
@@ -57,10 +58,10 @@ function DocumentAssist() {
       return;
     }
 
-    setLoading(true);
+    setLoading(true); // Show throbber and disable actions
     try {
       const response = await axios.post("http://localhost:5000/ask-question", {
-        markdown_path: selectedDocuments[0].path, // Assuming selecting one document for now
+        markdown_paths: selectedDocuments.map((doc) => doc.path), // Send selected document paths
         question: question,
       });
 
@@ -71,9 +72,9 @@ function DocumentAssist() {
       }
     } catch (error) {
       console.error("Error asking question:", error);
-      alert("Error asking question.");
+      alert("Error asking question. Please check the console for details.");
     } finally {
-      setLoading(false);
+      setLoading(false); // Hide throbber
     }
   };
 
@@ -85,39 +86,31 @@ function DocumentAssist() {
     );
   };
 
-  const handleFileDeselect = () => {
-    setFile(null);
-    setFileName("");
-  };
-
   return (
     <div className="document-assist-container">
-      {loading && <div className="spinner-overlay"><div className="spinner"></div></div>}
       <h2 className="header-title">Document QA Chatbot</h2>
+
       <div className="upload-section">
         <input
           type="file"
           id="fileUpload"
           style={{ display: "none" }}
           onChange={handleFileChange}
-          disabled={loading || selectedDocuments.length > 0} // Disable only if documents are selected
         />
-        <label
-          htmlFor="fileUpload"
-          className={`upload-button ${loading || selectedDocuments.length > 0 ? "disabled" : ""}`}
-          onClick={handleFileDeselect} // Reset the file input when label is clicked
-        >
+        <label htmlFor="fileUpload" className="upload-button">
           Choose File
         </label>
         <button
           className="upload-submit-button"
           onClick={handleFileUpload}
-          disabled={loading || !file} // Only disable if file is not selected
+          disabled={loading}
         >
           Upload Document
         </button>
       </div>
       {fileName && <p className="file-name">Selected: {fileName}</p>}
+
+      {loading && <div className="loading-bar">Loading...</div>} {/* Throbber */}
 
       <div className="document-table-section">
         <h3>Uploaded Documents</h3>
@@ -129,45 +122,49 @@ function DocumentAssist() {
             </tr>
           </thead>
           <tbody>
-            {documents.map((document, index) => (
+            {documents.map((doc, index) => (
               <tr key={index}>
                 <td>
                   <input
                     type="checkbox"
-                    checked={selectedDocuments.some((doc) => doc.path === document.path)}
-                    onChange={() => toggleDocumentSelection(document)}
+                    onChange={() => toggleDocumentSelection(doc)}
+                    checked={selectedDocuments.some((selected) => selected.path === doc.path)}
+                    disabled={loading}
                   />
                 </td>
-                <td>{document.name}</td>
+                <td>{doc.name}</td>
               </tr>
             ))}
+            {documents.length === 0 && (
+              <tr>
+                <td colSpan="2">No documents uploaded yet.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      <div className="qa-section">
-        <textarea
+      <div className="question-section">
+        <input
+          type="text"
+          className="question-input"
+          placeholder="Ask a question..."
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask a question..."
-          className="question-input"
-        ></textarea>
+          disabled={!selectedDocuments.length || loading}
+        />
         <button
           className="ask-question-button"
           onClick={handleAskQuestion}
-          disabled={loading || !question}
+          disabled={!selectedDocuments.length || loading}
         >
           Ask Question
         </button>
       </div>
 
       <div className="answer-section">
-        {answer && (
-          <div>
-            <h3>Answer:</h3>
-            <p>{answer}</p>
-          </div>
-        )}
+        <h3>Answer:</h3>
+        <p>{answer || "No answer available yet."}</p>
       </div>
     </div>
   );
